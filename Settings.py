@@ -17,7 +17,7 @@ Settings.read(CalSyncHABSettings)
 ApplicationName = Settings.get('General', 'ApplicationName')
 
 CalendarScope = Settings.get('Calendar', 'Scope')
-CalendarId = Settings.get('Calendar', 'CalendarId')
+CalendarIdList = Settings.items('CalendarIDs')
 CalendarMaxEvents = Settings.get('Calendar', 'MaxEvents')
 CalendarTimeZone = Settings.get('Calendar', 'TimeZone')
 CalendarClientSecretFile = Settings.get('Calendar', 'ClientSecretFile')
