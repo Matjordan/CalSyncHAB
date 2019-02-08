@@ -1,11 +1,8 @@
-import httplib2
-import os
-import datetime
-import argparse as AP
 import Settings as S
 import warnings
 import requests
 import time
+from operator import itemgetter
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -18,7 +15,7 @@ def GetCredentials():
         warnings.simplefilter('ignore')
         CredentialStore = Storage(S.CredentialFilePath)
         Credentials = CredentialStore.get()
-    
+
     if not Credentials or Credentials.invalid:
         AuthenticationFlow = client.flow_from_clientsecrets(S.CalendarClientSecretFile, S.CalendarScope)
         AuthenticationFlow.user_agent = S.ApplicationName
@@ -28,32 +25,76 @@ def GetCredentials():
 
 def Main():
     Credentials = GetCredentials()
+
     HTTPAuthorization = Credentials.authorize(httplib2.Http())
     CalendarService = discovery.build('calendar', 'v3', http = HTTPAuthorization)
     CurrentTime = datetime.datetime.utcnow().isoformat() + 'Z'
 
-    CalendarEvents = CalendarService.events().list(
-        calendarId = S.CalendarId,
-        timeMin = CurrentTime,
-        maxResults = S.CalendarMaxEvents,
-        singleEvents = True,
-        orderBy = 'startTime').execute()
-
-    RetrievedEvents = CalendarEvents.get('items', [])
-    MaxEvents = int(S.CalendarMaxEvents)
-
-    if not RetrievedEvents:
-        print('No upcoming events found.')
+    EventList = []
+    for key, CalendarId in S.CalendarIdList:
+        CalendarEvents = CalendarService.events().list(
+            calendarId = CalendarId,
+            timeMin = CurrentTime,
+            maxResults = S.CalendarMaxEvents,
+            singleEvents = True,
+            orderBy = 'startTime').execute()
+        RetrievedEvents = CalendarEvents.get('items', [])
+        for SingleEvent in RetrievedEvents:
+            EventStartTime = None
+            EventEndTime = None
+            event = []
+            if 'summary' in SingleEvent:
+                event.append(SingleEvent['summary'])
+            else:
+                event.append(' ')    
+            
+            if 'location' in SingleEvent:
+                event.append(SingleEvent['location'])
+            else:
+                event.append(' ')
+            
+            if 'description' in SingleEvent:
+                event.append(SingleEvent['description'])
+            else:
+                event.append(' ')
+            
+            if 'start' in SingleEvent:
+                EventStartTime = SingleEvent['start'].get('dateTime', SingleEvent['start'].get('date'))
+                try:
+                    datetime.datetime.strptime(EventStartTime, '%Y-%m-%dT%H:%M:%S' + S.CalendarTimeZone)
+                except ValueError:
+                    if "T" not in EventStartTime:
+                        EventStartTime = EventStartTime + 'T00:00:00' + S.CalendarTimeZone
+                    else:
+                        EventStartTime = EventStartTime
+                event.append(EventStartTime)
+            else:
+                event.append(' ')
+            
+            if 'end' in SingleEvent:
+                EventEndTime = SingleEvent['end'].get('dateTime', SingleEvent['end'].get('date'))
+                try:
+                    datetime.datetime.strptime(EventEndTime, '%Y-%m-%dT%H:%M:%S' + S.CalendarTimeZone)
+                except ValueError:
+                    if "T" not in EventEndTime:
+                        EventEndTime = EventEndTime + 'T00:00:00' + S.CalendarTimeZone
+                    else:
+                        EventEndTime = EventEndTime
+                event.append(EventEndTime)
+            else:
+                event.append(' ')
+            
+            EventList.append(event)
+    
+    SortedEvents = sorted(EventList, key=itemgetter(3)) 
 
     if S.OpenHABPort.strip() != '':
         TrimmedHostAndPort = S.OpenHABHostName.strip() + ':' + S.OpenHABPort.strip()
     else:
         TrimmedHostAndPort = S.OpenHABHostName.strip()
-        
-    EventCounter = 0
 
-    for SingleEvent in range(0, MaxEvents):
-        EventCounter += 1
+    MaxEvents = int(S.CalendarMaxEvents) + 1
+    for EventCounter in range(1, MaxEvents):
 
         CalendarEventSummaryItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_Summary'
         OpenHABResponse = requests.post(CalendarEventSummaryItemURL, data = '', allow_redirects = True)
@@ -65,16 +106,16 @@ def Main():
         OpenHABResponse = requests.post(CalendarEventDescriptionItemURL, data = '', allow_redirects = True)
         
         CalendarEventStartTimeItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_StartTime'
-        OpenHABResponse = requests.post(CalendarEventStartTimeItemURL, data = '1909-12-19T00:00:00.000+0100', allow_redirects = True)
+        OpenHABResponse = requests.post(CalendarEventStartTimeItemURL, data = '1970-01-01T00:00:00', allow_redirects = True)
 
         CalendarEventEndTimeItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_EndTime'
-        OpenHABResponse = requests.post(CalendarEventEndTimeItemURL, data = '1909-12-19T00:00:00.000+0100', allow_redirects = True)
-        
+        OpenHABResponse = requests.post(CalendarEventEndTimeItemURL, data = '1970-01-01T00:00:00', allow_redirects = True)
+
     time.sleep(2)
 
     EventCounter = 0
 
-    for SingleEvent in RetrievedEvents:
+    for SingleEvent in SortedEvents:
         EventSummary = ''
         EventLocation = ''
         EventDescription = ''
@@ -83,30 +124,20 @@ def Main():
 
         EventCounter += 1
 
-        if 'summary' in SingleEvent:
-            EventSummary = SingleEvent['summary']
+        if SingleEvent[0] != ' ':
+            EventSummary = SingleEvent[0]
 
-        if 'location' in SingleEvent:
-            EventLocation = SingleEvent['location']
+        if SingleEvent[1] != ' ':
+            EventLocation = SingleEvent[1]
 
-        if 'description' in SingleEvent:
-            EventDescription = SingleEvent['description']
+        if SingleEvent[2] != ' ':
+            EventDescription = SingleEvent[2]
 
-        if 'start' in SingleEvent:
-            EventStartTime = SingleEvent['start'].get('dateTime', SingleEvent['start'].get('date'))
+        if SingleEvent[3] != ' ':
+            EventStartTime = SingleEvent[3]
 
-        try:
-            datetime.datetime.strptime(EventStartTime, '%Y-%m-%dT%H:%M:%S' + S.CalendarTimeZone)
-        except ValueError:
-            EventStartTime = EventStartTime + 'T00:00:00' + S.CalendarTimeZone
-
-        if 'end' in SingleEvent:
-            EventEndTime = SingleEvent['end'].get('dateTime', SingleEvent['end'].get('date'))
-
-        try:
-            datetime.datetime.strptime(EventEndTime, '%Y-%m-%dT%H:%M:%S' + S.CalendarTimeZone)
-        except ValueError:
-            EventEndTime = EventEndTime + 'T00:00:00' + S.CalendarTimeZone            
+        if SingleEvent[4] != ' ':
+            EventEndTime = SingleEvent[4]
 
         CalendarEventSummaryItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_Summary'
         OpenHABResponse = requests.post(CalendarEventSummaryItemURL, data = EventSummary.encode('utf-8'), allow_redirects = True)
@@ -122,6 +153,9 @@ def Main():
     
         CalendarEventEndTimeItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_EndTime'
         OpenHABResponse = requests.post(CalendarEventEndTimeItemURL, data = EventEndTime, allow_redirects = True)
+
+        if EventCounter == MaxEvents:
+            break
 
 if __name__ == '__main__':
     Main()
