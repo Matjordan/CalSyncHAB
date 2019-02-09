@@ -13,9 +13,9 @@ Since I (and others) couldn’t make openHAB's CalDAV Personal binding to work w
 ### Installation
 #### Step 1: Create OAUth2 credentials
 First, you need to create OAuth2 credentials (https://console.developers.google.com), download credentials in JSON format and place it in CalSyncHAB folder (cloned or downloaded from a github). 
-In detail: go to https://console.developers.google.com/apis, and then choose Credentials on the menu (located on the left side of the screen). After that, press the blue button “Create credentials” located below the page title, and choose “OAuth client ID”. Select “Other” as application type, fill in “Name” field, and press “Create” button. It will show your “Client ID” and “Client secret” in a pop-up window. After closing this pop-up, you can download JSON credentials file by pressing Download JSON button located on the right side (it looks like download button on dropbox, google drive, etc).
+In detail: go to https://console.developers.google.com/apis, and then choose Credentials on the menu (located on the left side of the screen). After that, press the blue button “Create credentials” located below the page title, and choose “OAuth client ID”. Select “Other” as application type, fill in “Name” field, and press “Create” button. It will show your “Client ID” and “Client secret” in a pop-up window. After closing this pop-up, you can download JSON credentials file by pressing Download JSON button located on the right side (it looks like download button on dropbox, google drive, etc). You will need this file in step 4.
 
-#### Step 2: install google api
+#### Step 2: Install google api
 After installing Python (both 2.x and 3.x will work), you need to install following packages:
 
     python -m pip install --upgrade google-api-python-client
@@ -23,7 +23,6 @@ After installing Python (both 2.x and 3.x will work), you need to install follow
     python -m pip install requests
 
 Depending on your privileges on a linux machine you might have to use these commands with 'sudo'.
-
 Using linux you might come across a problem with pip which is descibed here: https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1306991. To work around this you have to:
 
     sudo easy_install --upgrade pip
@@ -66,7 +65,10 @@ Windows users do not need the chown and chmod commands
     cd CalSyncHAB
     chown openhab:openhab *
     ```
-- open .ini file and set “ClientSecretFile” to the complete path, e.g. “ClientSecretFile: /etc/openhab2/scripts/CalSyncHAB/CalSyncHABSecret.json”
+- open CalSynHAB.ini and set property “ClientSecretFile” to the full path where you placed the secret.json file, e.g. 
+    ```
+    ClientSecretFile: /etc/openhab2/scripts/CalSyncHAB/CalSyncHABSecret.json
+    ```
 - create a shell script “/etc/openhab2/scripts/CalSyncHAB.sh” with the following content: 
     ```
     #!/bin/sh
