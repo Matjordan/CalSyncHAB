@@ -60,8 +60,8 @@ Windows users do not need the chown and chmod commands
 - Set owner of the new folder:
     chown openhab:openhab /etc/openhab2/scripts/CalSyncHAB
 - Set owner of your files with the folder
-    cd CalSyncHAB
-    chown openhab:openhab *
+cd CalSyncHAB
+chown openhab:openhab *
 - open .ini file and set “ClientSecretFile” to the complete path, e.g. “ClientSecretFile: /etc/openhab2/scripts/CalSyncHAB/CalSyncHABSecret.json”
 - create a script “/etc/openhab2/scripts/CalSyncHAB.sh” with: 
     #!/bin/sh
