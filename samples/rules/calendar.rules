@@ -1,0 +1,140 @@
+﻿      /**********************************************************/
+     /*                 calendr.rules                          */
+    /*                 ===============                        */
+   /* this files contains some openhAB2-rules for retrieving */
+  /*  and managing events from your google calendars        */
+ /**********************************************************/
+
+import org.joda.time.DateTime
+
+   /***********************************************/
+  /* GetCalEvents retrieves your google calendar */
+ /* events via CalSynHAB.py every 30 minutes    */
+/***********************************************/
+rule "GetCalEvents"
+when
+	Time cron "30 0/30 * * * ?"
+then
+	var String results = executeCommandLine("/etc/openhab2/scripts/CalSyncHAB.sh",5*1000)
+	logInfo("GetCalEvents", results)
+end
+
+
+     /***********************************************/
+    /* ActCal retrieves your google calendar       */
+   /* events via CalSynHAB.py when your switch    */
+  /* item calAct changes from OFF to ON          */
+ /* Place this switch anywhere on your sitemap  */
+/***********************************************/
+rule "ActCal"
+when
+	Item calAct changed from OFF to ON
+then
+	var String results = executeCommandLine("/etc/openhab2/scripts/CalSyncHAB.sh",5*1000)
+	logInfo("ActCal", results)
+	sendCommand(calAct,OFF)
+end
+
+
+        /***************************************************/
+       /* ExecCal switches through your calendar items    */
+      /* and checks if an event is to start ort to end   */
+     /*  Depending on the condition which is optionally */
+    /* given within the event location the start or    */
+   /* end action given in events description will     */
+  /* be executed via updating the item given in      */
+ /* event summary.                                  */
+/***************************************************/
+rule "ExecCal"
+when
+	Time cron "0 0/1 * * * ?"
+then
+	swiNoHpInit.sendCommand(ON)
+	logInfo("ExecCal", "Start")
+	gCal.members.forEach[ gc | 
+		val eventStart = gCalEvent.members.filter[ act |
+			act.name == gc.name+"_StartTime"].head
+		val eventEnd = gCalEvent.members.filter[ act |
+			act.name == gc.name+"_EndTime"].head
+		val eventDesc = gCalEvent.members.filter[ act |
+			act.name == gc.name+"_Description"].head
+		val eventSum = gCalEvent.members.filter[ act |
+			act.name == gc.name+"_Summary"].head
+		val eventLoc = gCalEvent.members.filter[ act |
+			act.name == gc.name+"_Location"].head
+		var DateTime dtStart = new DateTime((eventStart.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+		var DateTime dtEnd = new DateTime((eventEnd.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+		var Long dStart = now.millis - dtStart.millis
+		var Long dEnd = now.millis - dtEnd.millis
+		val cond = eventLoc.state.toString.split(" ")
+		val cmd = eventDesc.state.toString.split(";")
+		val calItem = gCalItem.members.filter[ ci | ci.name == eventSum.state.toString].head
+		val testItem = gTesting.members.filter[ ci | ci.name == cond.get(0)].head
+		var Boolean testOk = false
+		if ((dStart >= 0 && dStart < 60000) || (dEnd >=0 && dEnd < 60000)) {
+			if (cond.size == 3) {
+				logInfo("ExecCal", "itemToTest='" + cond.get(0) + "' oeprator='" + cond.get(1) + "' valueToCompareWith='" + cond.get(2) + "'")
+				if(testItem !== null) {
+					switch (cond.get(1)) {
+						case "==": {
+							if (testItem.state.toString == cond.get(2)) {
+								testOk = true
+							}
+						}
+						case "!=": {
+							if (testItem.state.toString !== cond.get(2)) {
+								testOk = true
+							}
+						}
+					}
+				}
+				else {
+					logWarn("ExecCal", "WARNING: cannot find itemToTest named '" + cond.get(0) + "'")
+				}
+			}
+			else {
+				if (eventLoc.state.toString.length > 0) {
+					logWarn("ExecCal", "'" + eventLoc.state.toString + "' is not a valid condition to test. No action will be performed.")
+				}
+				else {
+					logInfo("ExecCal", "No condition to test. Action will be performed.")
+					testOk = true
+				}
+			}
+		}
+		if (dStart >=0 && dStart < 60000 && testOk) {
+			if (calItem !== null) {
+				logInfo("ExecCal", gc.name + " starting now with '" + calItem.name + "' -> " + cmd.get(0))
+				if (cmd.size == 2) {
+					if (cmd.get(0) !== "-") {
+						sendCommand(calItem, cmd.get(0))
+					}
+				}
+				else {
+					logWarn("ExecCal", "WARNING: no valid command")
+				}
+			}
+			else {
+				logWarn("ExecCal", "WARNING: cannot find item named '" + eventSum.state + "'")
+			}
+		}
+		if(dEnd >=0 && dEnd < 60000 && testOk) {
+			if (calItem !== null) {
+				if (cmd.size == 2) {
+					if (cmd.get(1) !== "-") {
+						sendCommand(calItem, cmd.get(1))
+					}
+					logInfo("ExecCal", gc.name + " ended now with'" + calItem.name + "' -> " + cmd.get(1))
+				}
+				else {
+					logWarn("ExecCal", "WARNING: no valid command")
+				}
+			}
+			else {
+				logWarn("ExecCal", "WARNING: cannot find item named '" + eventSum.state + "'")
+			}
+		}
+	]
+	logInfo("ExecCal", "End")
+	swiNoHpInit.sendCommand(OFF)
+end
