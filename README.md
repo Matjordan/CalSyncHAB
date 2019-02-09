@@ -115,4 +115,4 @@ calendar.rules contains the following 3 rules:
 - gCalEventX_EndTime contains the time when your event ends. At this time the second part of the description (to the right of the semicolon) will update your item.
 
 ### Time Zone
-Be careful (with that axe Eugene) when creating new events or editing strat or end time of events when you are within another time zone than your home location. Google normally uses the time zone where you are located while creating new events. If this is another zone as your home location events will start and end at wrong times. You can modify the time zone while creating new events within your google calendar.
+Be careful (with that axe Eugene) when creating new events or editing start or end time of events when you are staying in a time zone other than your home location. Google normally uses the time zone where you are located while creating new events. If this is another zone as your home location events will start and end at wrong times as 'ExecCal' uses the fully qualified start and end times. You can modify the time zone while creating new events within your google calendar.
