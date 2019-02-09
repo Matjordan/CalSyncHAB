@@ -79,12 +79,17 @@ Windows users do not need the chown and chmod commands
     ```
 
 #### Step 5: First launch
-After executing script for the first time (first time it should be done manually, not via OpenHAB), in Windows it will open Web Browser and ask you for a permission to access your calendar. You need to sign in to your Google account (if you aren’t signed in already) and press Allow button.
-When you are on a headless linux machine (without a browser) you need to:
-    sudo -u openhab /etc/openhab2/scripts/CalSyncHAB.sh
-and then copy the url shown by the script into a browser, click “Allow” and paste the given code back into the script prompt.
+- Windows:
+After executing CalSyncHAB.py for the first time (first time it should be done manually, not via OpenHAB), it will open Web Browser and ask you for a permission to access your calendar. You need to sign in to your Google account (if you aren’t signed in already) and press Allow button.
 
+- Linux (headlesss or without browser):
+```
+sudo -u openhab /etc/openhab2/scripts/CalSyncHAB.sh
+ ```
+Don't stop the script, but copy the url shown by the script into a browser (on another machine), click “Allow” and paste the given code back into the script prompt. Press enter.
 
-From your openhab rules you can “executeCommandLine(”/etc/openhab2/scripts/CalSyncHAB.sh",5*1000)" to update your items.
-
-
+From your openhab rules you can use
+```
+executeCommandLine(”/etc/openhab2/scripts/CalSyncHAB.sh",5*1000)
+```
+to update your items.
