@@ -95,3 +95,15 @@ From your openhab rules you can use
 executeCommandLine(”/etc/openhab2/scripts/CalSyncHAB.sh",5*1000)
 ```
 to update your items.
+
+### Samples
+You wil find two sample files for openHAB2:
+    samples/items/calendar.items
+    samples/rules/calendar.rules
+
+calendar.items contains all items neede to retrieve 10 calendar events from your google calendar(s).
+calendar.rules contains the following 3 rules:
+- 'GetCalEvents' repeats every half an hour to retrieve the your calendar events
+- 'ActCal' also retrieves your events but will be activated when switching item calAct from OFF to ON.  You can place this item into your sitemap for a quicker access to new calendar entries (very fine for testing).
+- 'ExecCal' executes the commands you specified in your events. 
+
