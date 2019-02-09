@@ -58,17 +58,17 @@ Windows users do not need the chown and chmod commands
 - Create a folder “CalSyncHAB” within /etc/openhab2/scripts
 - Put the python scripts, .ini file and the .json file into this new folder
 - Set owner of the new folder:
-    chown openhab:openhab /etc/openhab2/scripts/CalSyncHAB
+    - chown openhab:openhab /etc/openhab2/scripts/CalSyncHAB
 - Set owner of your files with the folder
-cd CalSyncHAB
-chown openhab:openhab *
+    - cd CalSyncHAB
+    - chown openhab:openhab *
 - open .ini file and set “ClientSecretFile” to the complete path, e.g. “ClientSecretFile: /etc/openhab2/scripts/CalSyncHAB/CalSyncHABSecret.json”
 - create a script “/etc/openhab2/scripts/CalSyncHAB.sh” with: 
     #!/bin/sh
     /usr/bin/python /etc/openhab2/scripts/CalSyncHAB/CalSyncHAB.py --noauth_local_webserver
 - Set rights and owner:
-    chown openhab:openhab /etc/openhab2/scripts/CalSyncHAB.sh
-    chmod +x /etc/openhab2/scripts/CalSyncHAB.sh
+    - chown openhab:openhab /etc/openhab2/scripts/CalSyncHAB.sh
+    - chmod +x /etc/openhab2/scripts/CalSyncHAB.sh
 
 #### Step 5: First launch
 After executing script for the first time (first time it should be done manually, not via OpenHAB), in Windows it will open Web Browser and ask you for a permission to access your calendar. You need to sign in to your Google account (if you aren’t signed in already) and press Allow button.
