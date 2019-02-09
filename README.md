@@ -107,3 +107,10 @@ calendar.rules contains the following 3 rules:
 - 'ActCal' also retrieves your events but will be activated when switching item calAct from OFF to ON.  You can place this item into your sitemap for a quicker access to new calendar entries (very fine for testing).
 - 'ExecCal' executes the commands you specified in your events. 
 
+'ExecCal' uses the following items:
+- gCal_EventX_Summary must contain the name of an openhab2-item which you want to update.
+- gCal_EventX_Descirption must contain the values which then item will be updated with. You must specify two values, one for the event start and one for the end seperated by a semi-colon, e.g. 'ON;OFF'. If you don't want the item to be updated in one of the two cases use '-', e.g. '50;-'. 
+- gCal_EventX_Location may contain a condition which will be checked before updating your item. No action will take place if the condition is false. I am using my presense detector switch (named: 'aPersonIsPresent') to stop my shades from moving every morning if nobody is at home. A condition has to contain  the name of an openhab-item, a comparision and a value to be compared with. All these have to be sperated by a space. Example: 'aPersonIsPresent == ON'.
+- gCalEventX_StartTime gives the time when your event starts. At this time the first part of the description (to the left of the semicolon) will update your item.
+- gCalEventX_EndTime contains the time when your event ends. At this time the second part of the description (to the right of the semicolon) will update your item.
+
