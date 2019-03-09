@@ -1,5 +1,5 @@
-﻿      /**********************************************************/
-     /*                 calendr.rules                          */
+﻿     /**********************************************************/
+     /*                 calendar.rules                         */
     /*                 ===============                        */
    /* this files contains some openhAB2-rules for retrieving */
   /*  and managing events from your google calendars        */
@@ -38,7 +38,7 @@ end
 
         /***************************************************/
        /* ExecCal switches through your calendar items    */
-      /* and checks if an event is to start ort to end   */
+      /* and checks if an event is to start or to end    */
      /*  Depending on the condition which is optionally */
     /* given within the event location the start or    */
    /* end action given in events description will     */
