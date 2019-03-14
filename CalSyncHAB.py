@@ -93,8 +93,8 @@ def Main():
     else:
         TrimmedHostAndPort = S.OpenHABHostName.strip()
 
-    MaxEvents = int(S.CalendarMaxEvents) + 1
-    for EventCounter in range(1, MaxEvents):
+    MaxEvents = int(S.CalendarMaxEvents)
+    for EventCounter in range(1, MaxEvents + 1):
 
         CalendarEventSummaryItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_Summary'
         OpenHABResponse = requests.post(CalendarEventSummaryItemURL, data = '', allow_redirects = True)
