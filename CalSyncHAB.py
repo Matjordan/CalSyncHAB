@@ -87,7 +87,7 @@ def Main():
             else:
                 event.append(' ')
             
-            event.append(CalendarID)
+            event.append(key.capitalize())
             
             EventList.append(event)
     
