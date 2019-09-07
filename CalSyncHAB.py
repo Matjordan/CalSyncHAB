@@ -87,6 +87,8 @@ def Main():
             else:
                 event.append(' ')
             
+            event.append(CalendarID)
+            
             EventList.append(event)
     
     SortedEvents = sorted(EventList, key=itemgetter(3)) 
@@ -113,6 +115,9 @@ def Main():
 
         CalendarEventEndTimeItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_EndTime'
         OpenHABResponse = requests.post(CalendarEventEndTimeItemURL, data = '1970-01-01T00:00:00', allow_redirects = True)
+        
+        CalendarEventCalIDItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_CalId'
+        OpenHABResponse = requests.post(CalendarEventCalIDItemURL, data = '', allow_redirects = True)
 
     time.sleep(2)
 
@@ -124,6 +129,7 @@ def Main():
         EventDescription = ''
         EventStartTime = None
         EventEndTime = None
+        EventCalId=''
 
         EventCounter += 1
 
@@ -141,6 +147,9 @@ def Main():
 
         if SingleEvent[4] != ' ':
             EventEndTime = SingleEvent[4]
+            
+        if SingleEvent[5] != ' ':
+            EventCalId = SingleEvent[5]
 
         CalendarEventSummaryItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_Summary'
         OpenHABResponse = requests.post(CalendarEventSummaryItemURL, data = EventSummary.encode('utf-8'), allow_redirects = True)
@@ -156,6 +165,9 @@ def Main():
     
         CalendarEventEndTimeItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_EndTime'
         OpenHABResponse = requests.post(CalendarEventEndTimeItemURL, data = EventEndTime, allow_redirects = True)
+        
+        CalendarEventCalIdItemURL = 'http://' + TrimmedHostAndPort + '/rest/items/' + S.OpenHABItemPrefix + 'Event' + str(EventCounter) + '_CalId'
+        OpenHABResponse = requests.post(CalendarEventCalIdItemURL, data = EventCalId.encode('utf-8'), allow_redirects = True)
 
         if EventCounter == MaxEvents:
             break
